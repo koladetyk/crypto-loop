@@ -1,10 +1,10 @@
 const ccxt = require('ccxt');
 
-async function placeKrakenFuturesOrder(asset, direction, entryPrice, riskAmount) {
+async function placeKrakenFuturesOrder(asset, direction, entryPrice, riskAmount, apiKey, apiSecret) {
     try {
         const krakenfutures = new ccxt.krakenfutures({
-            apiKey: process.env.KRAKEN_API_KEY,
-            secret: process.env.KRAKEN_API_SECRET,
+            apiKey: apiKey,      
+            secret: apiSecret,     
             enableRateLimit: true,
         });
 
@@ -27,5 +27,16 @@ async function placeKrakenFuturesOrder(asset, direction, entryPrice, riskAmount)
         throw error;
     }
 }
+
+// Function to save trade to blockchain
+const saveTradeToBlockchain = async (trade) => {
+    try {
+        //const response = await axios.post('https://blockchain.example.com/saveTrade', { trade });
+        return response.data;
+    } catch (error) {
+        console.error('Error saving trade to blockchain:', error);
+        throw error;
+    }
+};
 
 module.exports = { placeKrakenFuturesOrder };

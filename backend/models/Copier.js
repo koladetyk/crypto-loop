@@ -6,6 +6,7 @@ const Schema = mongoose.Schema;
 const CopierSchema = new Schema({
     name: { type: String, required: true },
     apiKey: { type: String, required: true },
+    apiSecret: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
     riskAmount: { type: Number, default: 0 },

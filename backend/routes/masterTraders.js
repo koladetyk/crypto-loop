@@ -7,5 +7,6 @@ const masterTraderController = require('../controllers/masterTraderController');
 // Route to register a master trader
 router.post('/registerMasterTrader', masterTraderController.registerMasterTrader);
 router.post('/followMasterTrader', masterTraderController.followMasterTrader);
+router.get('/getAllMasterTraders', masterTraderController.getAllMasterTraders);
 
 module.exports = router;

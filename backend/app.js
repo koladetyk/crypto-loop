@@ -8,7 +8,6 @@ const config = require('./config');
 const tradeRoutes = require('./routes/trades');
 const copiersRoutes = require('./routes/copiers');
 const masterTraderRoutes = require('./routes/masterTraders');
-const testRoutes = require('./routes/test');
 
 const app = express();
 
@@ -23,7 +22,6 @@ app.use(bodyParser.json());
 app.use('/api/trades', tradeRoutes);
 app.use('/api/copiers', copiersRoutes);
 app.use('/api/masterTraders', masterTraderRoutes);
-app.use('/api/test', testRoutes);
 
 const PORT = process.env.PORT || 5005;
 
