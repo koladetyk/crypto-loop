@@ -2,6 +2,8 @@
 
 const MasterTrader = require('../models/MasterTrader'); // Import the MasterTrader model
 const Copier = require('../models/Copier');
+const Trade = require('../models/Trade');  
+
 
 exports.followMasterTrader = async (req, res) => {
     const { masterTraderId, copierId } = req.body;
@@ -19,6 +21,11 @@ exports.followMasterTrader = async (req, res) => {
             return res.status(404).json({ error: 'Copier not found' });
         }
 
+        // Check if the copier already follows the master trader
+        if (masterTrader.copiers.includes(copier._id)) {
+            return res.status(400).json({ error: 'Copier already follows this Master Trader' });
+        }
+
         // Add the copier to the master trader's list of copiers
         masterTrader.copiers.push(copier._id);
         await masterTrader.save();
@@ -33,6 +40,7 @@ exports.followMasterTrader = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 // Function to register a master trader
 exports.registerMasterTrader = async (req, res) => {
@@ -60,11 +68,19 @@ exports.registerMasterTrader = async (req, res) => {
 
 exports.getAllMasterTraders = async (req, res) => {
     try {
-         // Fetch all master traders
-        const masterTraders = await MasterTrader.find(); 
-        res.status(200).json(masterTraders);
+      const masterTraders = await MasterTrader.find().populate('copiers').exec();
+      const tradersWithTradeCount = await Promise.all(masterTraders.map(async trader => {
+        const tradeCount = await Trade.countDocuments({ masterTrader: trader._id });
+        return {
+          ...trader.toObject(),
+          tradeCount,
+          copierCount: trader.copiers.length
+        };
+      }));
+      res.status(200).json(tradersWithTradeCount);
     } catch (error) {
-        console.error('Error fetching master traders:', error);
-        res.status(500).json({ error: 'Failed to fetch master traders' });
+      console.error('Error fetching master traders:', error);
+      res.status(500).json({ error: 'Failed to fetch master traders' });
     }
-};
+  };
+  

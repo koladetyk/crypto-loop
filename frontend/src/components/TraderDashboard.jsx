@@ -1,18 +1,18 @@
-// src/components/TraderDashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Container, TextField, Button, Grid, Typography, Checkbox, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import axios from 'axios';
 import { ethers } from 'ethers';
-import TradeList from './TradeList';
-
-import contractABI from '../abi/contractAbi.json'; // Ensure this points to your contract's ABI JSON
+import contractABI from '../abi/contractAbi.json';
+import Header from './Header';
 
 const TraderDashboard = () => {
   const [tradeDetails, setTradeDetails] = useState({
-    assetName:'',
-    masterTradeId: '', // Add masterTradeId to your state
+    assetName: '',
+    masterTradeId: '', 
     entryPrice: '',
     stopPrice: '',
     profit: '',
-    isBuySide: true // Default value for buy side
+    isBuySide: true 
   });
 
   const [trades, setTrades] = useState([]);
@@ -28,31 +28,36 @@ const TraderDashboard = () => {
   };
 
   const handlePlaceTrade = async () => {
-    
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send('eth_requestAccounts', []);
       const signer = provider.getSigner();
-
-      // Create a contract instance
-      const contract = new ethers.Contract("0xd98df4f1e32eb48a6206207253396731b8a4c0a0", contractABI, signer);
-
+  
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+  
       const { assetName, masterTradeId, entryPrice, stopPrice, profit, isBuySide } = tradeDetails;
 
-      // Call the smart contract function
+      // Convert prices to integers by multiplying by 100 (assuming 2 decimal places)
+      const entryPriceInt = ethers.BigNumber.from(Math.round(entryPrice * 100));
+      const stopPriceInt = ethers.BigNumber.from(Math.round(stopPrice * 100));
+      const profitInt = ethers.BigNumber.from(Math.round(profit * 100));
+
+      // Hash the ObjectId and convert it to a BigNumber
+      const masterTradeIdHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(masterTradeId));
+      const numericMasterTradeId = ethers.BigNumber.from(masterTradeIdHash);
+  
       const tx = await contract.storeTradeData(
-        ethers.BigNumber.from(masterTradeId),
-        entryPrice,
-        stopPrice,
-        profit,
+        numericMasterTradeId,
+        entryPriceInt,
+        stopPriceInt,
+        profitInt,
         isBuySide
       );
-
+  
       const txHash = tx.hash;
-
-      // Wait for the transaction to be mined
+  
       await tx.wait();
-      alert('Trade stored successfully!');
+
       setTrades([
         ...trades,
         {
@@ -66,6 +71,26 @@ const TraderDashboard = () => {
         }
       ]);
 
+      alert('Trade stored successfully!');
+      
+      try {
+        const response = await axios.post('http://localhost:5005/api/trades/saveTrade', {
+          asset: assetName,
+          direction: isBuySide ? 'buy' : 'sell',
+          entryPrice,
+          stopLossPrice: stopPrice,
+          takeProfitPrice: profit,
+          masterTraderId: masterTradeId
+        });
+
+        const savedTrade = response.data;
+
+        alert('Trade stored successfully in the backend!');
+        setTrades([...trades, savedTrade]);
+      } catch (error) {
+        console.error('Error saving trade to backend:', error);
+        alert('An error occurred while saving the trade data to the backend.');
+      }
       
     } catch (error) {
       console.error('Error placing trade:', error);
@@ -73,63 +98,156 @@ const TraderDashboard = () => {
     }
   };
 
+  const fetchTrades = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5005/api/trades/getTradesByMasterTraderId/${tradeDetails.masterTradeId}`);
+      setTrades(response.data);
+    } catch (error) {
+      console.error('Error fetching stored trades:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (tradeDetails.masterTradeId) {
+      fetchTrades();
+    }
+  }, [tradeDetails.masterTradeId]);
+
+  const handleCopyTrades = async () => {
+    try {
+      const response = await axios.post('http://localhost:5005/api/copiers/copyTrades', {
+        masterTraderId: tradeDetails.masterTradeId
+      });
+      alert(response.data.message);
+    } catch (error) {
+      console.error('Error copying trades:', error);
+      alert('An error occurred while copying the trades.');
+    }
+  };
+
   return (
-    <div className="trader-dashboard">
-    <h2>Store Trade Data</h2>
-    <input
-      type="text"
-      name="masterTradeId"
-      placeholder="Master Trade ID"
-      value={tradeDetails.masterTradeId}
-      onChange={handleChange}
-      required
-    />
-    <input
-      type="text"
-      name="assetName"
-      placeholder="Asset Name"
-      value={tradeDetails.assetName}
-      onChange={handleChange}
-      required
-    />
-    <input
-      type="text"
-      name="entryPrice"
-      placeholder="Entry Price"
-      value={tradeDetails.entryPrice}
-      onChange={handleChange}
-      required
-    />
-    <input
-      type="text"
-      name="stopPrice"
-      placeholder="Stop Price"
-      value={tradeDetails.stopPrice}
-      onChange={handleChange}
-      required
-    />
-    <input
-      type="text"
-      name="profit"
-      placeholder="Profit"
-      value={tradeDetails.profit}
-      onChange={handleChange}
-      required
-    />
-    <label>
-      <input
-        type="checkbox"
-        name="isBuySide"
-        checked={tradeDetails.isBuySide}
-        onChange={handleChange}
-      />
-      Buy Side
-    </label>
-    <button onClick={handlePlaceTrade}>Store Trade Data</button>
-
-    <TradeList trades={trades} />
-  </div>
-
+    <Container maxWidth="sm" style={{ marginTop: '20px' }}>
+      <Header />
+      <Typography variant="h4" component="h1" align="center" gutterBottom>
+        Store Trade Data
+      </Typography>
+      <form>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Master Trade ID"
+              name="masterTradeId"
+              variant="outlined"
+              fullWidth
+              value={tradeDetails.masterTradeId}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Asset Name"
+              name="assetName"
+              variant="outlined"
+              fullWidth
+              value={tradeDetails.assetName}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Entry Price"
+              name="entryPrice"
+              variant="outlined"
+              fullWidth
+              value={tradeDetails.entryPrice}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Stop Price"
+              name="stopPrice"
+              variant="outlined"
+              fullWidth
+              value={tradeDetails.stopPrice}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Profit"
+              name="profit"
+              variant="outlined"
+              fullWidth
+              value={tradeDetails.profit}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="isBuySide"
+                  checked={tradeDetails.isBuySide}
+                  onChange={handleChange}
+                />
+              }
+              label="Buy Side"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" color="primary" fullWidth onClick={handlePlaceTrade}>
+              Store Trade Data
+            </Button>
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" color="primary" fullWidth onClick={handleCopyTrades}>
+              Copy Trades to All Copiers
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+      
+      <Typography variant="h5" component="h2" align="center" style={{ marginTop: '20px' }}>
+        Stored Trades
+      </Typography>
+      <TableContainer component={Paper} style={{ marginTop: '20px' }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Asset</TableCell>
+              <TableCell>Direction</TableCell>
+              <TableCell>Entry Price</TableCell>
+              <TableCell>Stop Loss Price</TableCell>
+              <TableCell>Take Profit Price</TableCell>
+              <TableCell>Created At</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {trades.map((trade, index) => (
+              <TableRow key={index}>
+                <TableCell>{trade.asset}</TableCell>
+                <TableCell>{trade.direction}</TableCell>
+                <TableCell>{trade.entryPrice}</TableCell>
+                <TableCell>{trade.stopLossPrice}</TableCell>
+                <TableCell>{trade.takeProfitPrice}</TableCell>
+                <TableCell>{new Date(trade.createdAt).toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <a href="/staking" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+        <Button variant="contained" color="secondary" fullWidth style={{ backgroundColor: '', marginTop: '100px' }}>
+          Go to Staking
+        </Button>
+      </a>
+    </Container>
   );
 };
 

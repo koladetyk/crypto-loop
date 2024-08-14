@@ -1,35 +1,106 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Container, TextField, Button, Grid, Typography } from '@mui/material';
+import Logo from './logo.png'; 
+import axios from 'axios';
+import Header from './Header';
 
 const RegisterCopier = () => {
   const [formData, setFormData] = useState({
     name: '',
     apiKey: '',
+    apiSecret: '',
     email: '',
     phone: ''
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const navigate = useNavigate();
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Submit form data to backend API
-    navigate('/dashboard/copier')
+    try {
+      const response = await axios.post('http://localhost:5005/api/copiers/registerCopier', formData);
+      console.log(response.data);
+      navigate("/dashboard/copier", { replace: true });
+    } catch (error) {
+      console.error("There was an error registering the copier!", error);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Register as Copier</h2>
-      <input type="text" name="name" placeholder="Name" onChange={handleChange} />
-      <input type="text" name="apiKey" placeholder="API Key" onChange={handleChange} />
-      <input type="email" name="email" placeholder="Email" onChange={handleChange} />
-      <input type="tel" name="phone" placeholder="Phone Number" onChange={handleChange} />
-      <button type="submit">Register</button>
-    </form>
+    <Container maxWidth="sm" style={{ marginTop: '20px' }}>
+      <Header />
+      <div style={{ marginTop: '20px' }}></div> 
+      <Typography variant="h4" component="h1" align="center" gutterBottom>
+        Register as Copier
+      </Typography>
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Name"
+              name="name"
+              variant="outlined"
+              fullWidth
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="API Key"
+              name="apiKey"
+              variant="outlined"
+              fullWidth
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="API Secret"
+              name="apiSecret"
+              variant="outlined"
+              fullWidth
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              variant="outlined"
+              fullWidth
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Phone Number"
+              name="phone"
+              type="tel"
+              variant="outlined"
+              fullWidth
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button type="submit" variant="contained" color="success" fullWidth>
+              Register
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+    </Container>
   );
 };
 

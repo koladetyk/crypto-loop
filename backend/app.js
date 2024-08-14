@@ -1,6 +1,7 @@
 // app.js
 
 require('dotenv').config();
+const cors = require('cors');
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -16,12 +17,17 @@ mongoose.connect(config.dbUri, { useNewUrlParser: true, useUnifiedTopology: true
     .catch(err => console.log(err));
 
 app.use(bodyParser.json());
-// Middleware to parse incoming requests with JSON payloads
-//app.use(express.json());
+
+app.use(cors({
+    origin: 'http://localhost:5173', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    credentials: true 
+}));
 
 app.use('/api/trades', tradeRoutes);
 app.use('/api/copiers', copiersRoutes);
 app.use('/api/masterTraders', masterTraderRoutes);
+
 
 const PORT = process.env.PORT || 5005;
 

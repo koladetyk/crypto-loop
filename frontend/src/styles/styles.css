@@ -1,0 +1,18 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .navbar {
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px 20px;
+    align-items: center;
+  }
+  
+  .navbar-logo {
+    max-height: 80px;
+    margin-left: -35px;
+  }
+  

@@ -87,7 +87,7 @@ exports.copyTrades = async (req, res) => {
         for (const trade of trades) {
             for (const copier of masterTrader.copiers) {
                 try {
-                    // Use the API key and secret from the copier's database entry
+                    // Use the API key and secret
                     await placeKrakenFuturesOrder(trade.asset, trade.direction, trade.entryPrice, copier.riskAmount, copier.apiKey, copier.apiSecret);
                     console.log(`Trade placed for copier ${copier._id} with amount ${copier.riskAmount} for trade ${trade._id}`);
                 } catch (error) {

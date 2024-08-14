@@ -5,6 +5,7 @@ import RegisterTrader from './components/RegisterTrader';
 import RegisterCopier from './components/RegisterCopier';
 import TraderDashboard from './components/TraderDashboard';
 import CopierDashboard from './components/CopierDashboard';
+import StakingPage from './components/StakingPage';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/register/copier" element={<RegisterCopier />} />
         <Route path="/dashboard/trader" element={<TraderDashboard />} />
         <Route path="/dashboard/copier" element={<CopierDashboard />} />
+        <Route path="/staking" element={<StakingPage />} />
       </Routes>
     </div>
   );
