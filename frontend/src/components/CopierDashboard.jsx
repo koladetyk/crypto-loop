@@ -61,8 +61,7 @@ const CopierDashboard = () => {
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
     }
-};
-
+  };
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
@@ -74,27 +73,38 @@ const CopierDashboard = () => {
       <Typography variant="h4" component="h1" align="center" gutterBottom>
         Copier Dashboard
       </Typography>
-      <TextField
-        label="Copier ID"
-        name="copierId"
-        variant="outlined"
-        fullWidth
-        value={copierId}
-        onChange={(e) => setCopierId(e.target.value)}
-        required
-      />
-      <TextField
-        label="Risk Amount"
-        name="riskAmount"
-        variant="outlined"
-        fullWidth
-        value={riskAmount}
-        onChange={(e) => setRiskAmount(e.target.value)}
-        required
-      />
-      <Button variant="contained" color="success" fullWidth onClick={handleSetRisk}>
-        Set Risk Amount
-      </Button>
+      <form>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Copier ID"
+              name="copierId"
+              variant="outlined"
+              fullWidth
+              value={copierId}
+              onChange={(e) => setCopierId(e.target.value)}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Risk Amount"
+              name="riskAmount"
+              variant="outlined"
+              fullWidth
+              value={riskAmount}
+              onChange={(e) => setRiskAmount(e.target.value)}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" color="success" fullWidth onClick={handleSetRisk}>
+              Set Risk Amount
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+      
       <Typography variant="h6" component="h2" align="center" style={{ marginTop: '20px' }}>
         Follow Traders
       </Typography>
