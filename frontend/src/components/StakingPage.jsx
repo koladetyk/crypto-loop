@@ -21,7 +21,10 @@ const StakingPage = () => {
       const tx = await contract.stakeTokens(
         ethers.utils.parseEther(amount),  // Convert amount to Wei (assuming it's in Ether)
         stakingTime,
-        true  // Replace with appropriate value for isMasterTrader or fetch it from your app state
+        true,  // Replace with appropriate value for isMasterTrader or fetch it from your app state
+        {
+          value: ethers.utils.parseEther(amount),  // Send the same amount of Ether with the transaction
+        }
       );
 
       await tx.wait();
